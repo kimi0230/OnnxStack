@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime.Tensors;
 using OnnxStack.Core;
+using OnnxStack.Core.Config;
 using OnnxStack.Core.Image;
 using OnnxStack.Core.Services;
 using OnnxStack.StableDiffusion.Common;
@@ -51,7 +52,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// </summary>
         /// <param name="model">The model options.</param>
         /// <returns></returns>
-        public async Task<bool> LoadModelAsync(StableDiffusionModelSet model)
+        public async Task<bool> LoadModelAsync(IOnnxModelSetConfig model)
         {
             var modelSet = await _modelService.LoadModelAsync(model);
             return modelSet is not null;
@@ -63,7 +64,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// </summary>
         /// <param name="modelSet">The model options.</param>
         /// <returns></returns>
-        public async Task<bool> UnloadModelAsync(StableDiffusionModelSet modelSet)
+        public async Task<bool> UnloadModelAsync(IOnnxModel modelSet)
         {
             return await _modelService.UnloadModelAsync(modelSet);
         }
@@ -74,7 +75,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// </summary>
         /// <param name="modelSet">The model options.</param>
         /// <returns></returns>
-        public bool IsModelLoaded(StableDiffusionModelSet modelSet)
+        public bool IsModelLoaded(IOnnxModel modelSet)
         {
             return _modelService.IsModelLoaded(modelSet);
         }
@@ -87,7 +88,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The callback used to provide progess of the current InferenceSteps.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The diffusion result as <see cref="DenseTensor<float>"/></returns>
-        public async Task<DenseTensor<float>> GenerateAsync(StableDiffusionModelSet model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
+        public async Task<DenseTensor<float>> GenerateAsync(ModelOptions model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
         {
             return await DiffuseAsync(model, prompt, options, progressCallback, cancellationToken).ConfigureAwait(false);
         }
@@ -101,7 +102,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The callback used to provide progess of the current InferenceSteps.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The diffusion result as <see cref="SixLabors.ImageSharp.Image<Rgba32>"/></returns>
-        public async Task<Image<Rgba32>> GenerateAsImageAsync(StableDiffusionModelSet model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
+        public async Task<Image<Rgba32>> GenerateAsImageAsync(ModelOptions model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
         {
             return await GenerateAsync(model, prompt, options, progressCallback, cancellationToken)
                 .ContinueWith(t => t.Result.ToImage(), cancellationToken)
@@ -117,7 +118,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The callback used to provide progess of the current InferenceSteps.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The diffusion result as <see cref="byte[]"/></returns>
-        public async Task<byte[]> GenerateAsBytesAsync(StableDiffusionModelSet model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
+        public async Task<byte[]> GenerateAsBytesAsync(ModelOptions model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
         {
             var generateResult = await GenerateAsync(model, prompt, options, progressCallback, cancellationToken).ConfigureAwait(false);
             if (!prompt.HasInputVideo)
@@ -135,7 +136,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The callback used to provide progess of the current InferenceSteps.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The diffusion result as <see cref="System.IO.Stream"/></returns>
-        public async Task<Stream> GenerateAsStreamAsync(StableDiffusionModelSet model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
+        public async Task<Stream> GenerateAsStreamAsync(ModelOptions model, PromptOptions prompt, SchedulerOptions options, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
         {
             var generateResult = await GenerateAsync(model, prompt, options, progressCallback, cancellationToken).ConfigureAwait(false);
             if (!prompt.HasInputVideo)
@@ -155,7 +156,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The progress callback.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public IAsyncEnumerable<BatchResult> GenerateBatchAsync(StableDiffusionModelSet modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<BatchResult> GenerateBatchAsync(ModelOptions modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, CancellationToken cancellationToken = default)
         {
             return DiffuseBatchAsync(modelOptions, promptOptions, schedulerOptions, batchOptions, progressCallback, cancellationToken);
         }
@@ -171,7 +172,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The progress callback.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async IAsyncEnumerable<Image<Rgba32>> GenerateBatchAsImageAsync(StableDiffusionModelSet modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<Image<Rgba32>> GenerateBatchAsImageAsync(ModelOptions modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await foreach (var result in GenerateBatchAsync(modelOptions, promptOptions, schedulerOptions, batchOptions, progressCallback, cancellationToken))
                 yield return result.ImageResult.ToImage();
@@ -188,7 +189,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The progress callback.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async IAsyncEnumerable<byte[]> GenerateBatchAsBytesAsync(StableDiffusionModelSet modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<byte[]> GenerateBatchAsBytesAsync(ModelOptions modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await foreach (var result in GenerateBatchAsync(modelOptions, promptOptions, schedulerOptions, batchOptions, progressCallback, cancellationToken))
             {
@@ -210,7 +211,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// <param name="progressCallback">The progress callback.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async IAsyncEnumerable<Stream> GenerateBatchAsStreamAsync(StableDiffusionModelSet modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<Stream> GenerateBatchAsStreamAsync(ModelOptions modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progressCallback = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await foreach (var result in GenerateBatchAsync(modelOptions, promptOptions, schedulerOptions, batchOptions, progressCallback, cancellationToken))
             {
@@ -238,7 +239,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// or
         /// Scheduler '{schedulerOptions.SchedulerType}' is not compatible  with the `{pipeline.PipelineType}` pipeline.
         /// </exception>
-        private async Task<DenseTensor<float>> DiffuseAsync(StableDiffusionModelSet modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, Action<DiffusionProgress> progress = null, CancellationToken cancellationToken = default)
+        private async Task<DenseTensor<float>> DiffuseAsync(ModelOptions modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, Action<DiffusionProgress> progress = null, CancellationToken cancellationToken = default)
         {
             if (!_pipelines.TryGetValue(modelOptions.PipelineType, out var pipeline))
                 throw new Exception("Pipeline not found or is unsupported");
@@ -273,7 +274,7 @@ namespace OnnxStack.StableDiffusion.Services
         /// or
         /// Scheduler '{schedulerOptions.SchedulerType}' is not compatible  with the `{pipeline.PipelineType}` pipeline.
         /// </exception>
-        private async IAsyncEnumerable<BatchResult> DiffuseBatchAsync(StableDiffusionModelSet modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progress = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        private async IAsyncEnumerable<BatchResult> DiffuseBatchAsync(ModelOptions modelOptions, PromptOptions promptOptions, SchedulerOptions schedulerOptions, BatchOptions batchOptions, Action<DiffusionProgress> progress = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (!_pipelines.TryGetValue(modelOptions.PipelineType, out var pipeline))
                 throw new Exception("Pipeline not found or is unsupported");
@@ -334,12 +335,19 @@ namespace OnnxStack.StableDiffusion.Services
             if (!promptOptions.HasInputVideo || promptOptions.InputVideo.VideoFrames is not null)
                 return;
 
-            // Already has VideoFrames
-            if (promptOptions.InputVideo.VideoFrames is not null)
-                return;
+            if (promptOptions.VideoInputFPS == 0 || promptOptions.VideoOutputFPS == 0)
+            {
+                var videoInfo = await _videoService.GetVideoInfoAsync(promptOptions.InputVideo);
+                if (promptOptions.VideoInputFPS == 0)
+                    promptOptions.VideoInputFPS = videoInfo.FPS;
 
+                if (promptOptions.VideoOutputFPS == 0)
+                    promptOptions.VideoOutputFPS = videoInfo.FPS;
+            }
+
+            var videoFrame = await _videoService.CreateFramesAsync(promptOptions.InputVideo, promptOptions.VideoInputFPS);
             progress?.Invoke(new DiffusionProgress($"Generating video frames @ {promptOptions.VideoInputFPS}fps"));
-            promptOptions.InputVideo.VideoFrames = await _videoService.CreateFramesAsync(promptOptions.InputVideo, promptOptions.VideoInputFPS);
+            promptOptions.InputVideo.VideoFrames = videoFrame;
         }
     }
 }

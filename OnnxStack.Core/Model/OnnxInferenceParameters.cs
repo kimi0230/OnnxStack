@@ -45,6 +45,12 @@ namespace OnnxStack.Core.Model
             _inputs.Add(metaData, value.ToOrtValue(metaData));
         }
 
+        public void AddInputTensor(DenseTensor<double> value)
+        {
+            var metaData = GetNextInputMetadata();
+            _inputs.Add(metaData, value.ToOrtValue(metaData));
+        }
+
 
         /// <summary>
         /// Adds the input tensor.
@@ -162,6 +168,18 @@ namespace OnnxStack.Core.Model
         /// Gets the output name values.
         /// </summary>
         public IReadOnlyDictionary<string, OrtValue> OutputNameValues => _outputs.NameValues;
+
+
+        /// <summary>
+        /// Gets the expected input parameter count.
+        /// </summary>
+        public int InputCount => _metadata.Inputs.Count;
+
+
+        /// <summary>
+        /// Gets the expected output parameter count.
+        /// </summary>
+        public int OutputCount => _metadata.Outputs.Count;
 
 
         /// <summary>

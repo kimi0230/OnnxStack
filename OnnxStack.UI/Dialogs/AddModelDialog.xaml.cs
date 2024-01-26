@@ -38,7 +38,7 @@ namespace OnnxStack.UI.Dialogs
             SaveCommand = new AsyncRelayCommand(Save, CanExecuteSave);
             CancelCommand = new AsyncRelayCommand(Cancel);
             ModelTemplates = new List<StableDiffusionModelTemplate>( _modelFactory.GetStableDiffusionModelTemplates());
-            InvalidOptions = _settings.StableDiffusionModelSets.Select(x => x.Name.ToLower()).ToList();
+            InvalidOptions = _settings.GetModelNames();
             InitializeComponent();
         }
 

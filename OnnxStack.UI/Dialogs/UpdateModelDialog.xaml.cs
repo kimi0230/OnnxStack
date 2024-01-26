@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,9 +28,7 @@ namespace OnnxStack.UI.Dialogs
             _uiSettings = uiSettings;
             SaveCommand = new AsyncRelayCommand(Save, CanExecuteSave);
             CancelCommand = new AsyncRelayCommand(Cancel, CanExecuteCancel);
-            _invalidOptions = _uiSettings.StableDiffusionModelSets
-                .Select(x => x.Name)
-                .ToList();
+            _invalidOptions = uiSettings.GetModelNames();
             InitializeComponent();
         }
 
